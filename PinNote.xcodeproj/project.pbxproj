@@ -1,0 +1,392 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		13B363A1A02A8BCA90D9337D /* PinItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CF6323B4274E288344AE9E3 /* PinItem.swift */; };
+		2314B748F61B768A05C8BA35 /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F56FFFA32BCD73383806442 /* ThemeManager.swift */; };
+		35DF172CB51504BCF84AF80E /* PillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23B7CDB6027B768E3942D08 /* PillView.swift */; };
+		50C474B8DBA711925E29668A /* StylePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27957FC6DC22F88F4C752300 /* StylePickerView.swift */; };
+		578A890739AFE91D6E04E1A3 /* PinCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE9471E22CFFD8F98473203 /* PinCardView.swift */; };
+		63D03472AB26A70D83DC62FA /* PinNoteViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87B1E5687CA0141FF8896241 /* PinNoteViewModel.swift */; };
+		984472B2DF1F0D8D1D1E287A /* PinNoteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D71FC2E705EFA0DFB6836AA /* PinNoteApp.swift */; };
+		ABFE1AA38387D6CB7095358D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E68061960A0419AA263F7ED /* SettingsView.swift */; };
+		C62943F43D9A7221F69D5D65 /* PinWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65AD3EBC8C29A26CE8DC1486 /* PinWindowView.swift */; };
+		D13981C032011CDAF2482D5A /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A96B03953CFBA14ECEF4EDB /* MenuBarView.swift */; };
+		DB457729301EA8198532D51D /* ColorHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C621E2BDC6D22534332713 /* ColorHelper.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		21C621E2BDC6D22534332713 /* ColorHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorHelper.swift; sourceTree = "<group>"; };
+		27957FC6DC22F88F4C752300 /* StylePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StylePickerView.swift; sourceTree = "<group>"; };
+		2D71FC2E705EFA0DFB6836AA /* PinNoteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinNoteApp.swift; sourceTree = "<group>"; };
+		3D6F6197726B8CEEE20B9677 /* PinNote.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PinNote.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5CF6323B4274E288344AE9E3 /* PinItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinItem.swift; sourceTree = "<group>"; };
+		65AD3EBC8C29A26CE8DC1486 /* PinWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinWindowView.swift; sourceTree = "<group>"; };
+		6F56FFFA32BCD73383806442 /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
+		7E68061960A0419AA263F7ED /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		87B1E5687CA0141FF8896241 /* PinNoteViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinNoteViewModel.swift; sourceTree = "<group>"; };
+		8A96B03953CFBA14ECEF4EDB /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		CEE9471E22CFFD8F98473203 /* PinCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinCardView.swift; sourceTree = "<group>"; };
+		E23B7CDB6027B768E3942D08 /* PillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0E665F7C397E267D3E895296 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				6F56FFFA32BCD73383806442 /* ThemeManager.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		285980CA36B34A91383ABDFC /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				2D71FC2E705EFA0DFB6836AA /* PinNoteApp.swift */,
+				34A30F22B23AC79BDD4D7808 /* Helpers */,
+				6E0C98319193B917EF8C6723 /* Models */,
+				0E665F7C397E267D3E895296 /* Theme */,
+				E2DBBF104CC4E82AC6DF501B /* ViewModels */,
+				5570246A9FCCF30E788ECABD /* Views */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		34A30F22B23AC79BDD4D7808 /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				21C621E2BDC6D22534332713 /* ColorHelper.swift */,
+			);
+			path = Helpers;
+			sourceTree = "<group>";
+		};
+		5570246A9FCCF30E788ECABD /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				8A96B03953CFBA14ECEF4EDB /* MenuBarView.swift */,
+				E23B7CDB6027B768E3942D08 /* PillView.swift */,
+				CEE9471E22CFFD8F98473203 /* PinCardView.swift */,
+				65AD3EBC8C29A26CE8DC1486 /* PinWindowView.swift */,
+				7E68061960A0419AA263F7ED /* SettingsView.swift */,
+				27957FC6DC22F88F4C752300 /* StylePickerView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		6A2CEAB12C6EA63F1343871A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3D6F6197726B8CEEE20B9677 /* PinNote.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6A7E2E27AFC56DEDBF63843C = {
+			isa = PBXGroup;
+			children = (
+				285980CA36B34A91383ABDFC /* Sources */,
+				6A2CEAB12C6EA63F1343871A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		6E0C98319193B917EF8C6723 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				5CF6323B4274E288344AE9E3 /* PinItem.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		E2DBBF104CC4E82AC6DF501B /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				87B1E5687CA0141FF8896241 /* PinNoteViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		85B8433320AF9C759C138145 /* PinNote */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A823230780903AE591FAB673 /* Build configuration list for PBXNativeTarget "PinNote" */;
+			buildPhases = (
+				A5839AD8F397DE9F346E0839 /* Sources */,
+				9233356DE0DB2C1004D0DAAF /* Copy App Icon */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PinNote;
+			packageProductDependencies = (
+			);
+			productName = PinNote;
+			productReference = 3D6F6197726B8CEEE20B9677 /* PinNote.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4CEF4A465F703F8F7B025531 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					85B8433320AF9C759C138145 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 63195CB22B4BCBEBF7638E1C /* Build configuration list for PBXProject "PinNote" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 6A7E2E27AFC56DEDBF63843C;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 6A2CEAB12C6EA63F1343871A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				85B8433320AF9C759C138145 /* PinNote */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		9233356DE0DB2C1004D0DAAF /* Copy App Icon */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy App Icon";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "mkdir -p \"${BUILT_PRODUCTS_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\ncp \"${SRCROOT}/Resources/PinNote.icns\" \"${BUILT_PRODUCTS_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/PinNote.icns\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A5839AD8F397DE9F346E0839 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DB457729301EA8198532D51D /* ColorHelper.swift in Sources */,
+				D13981C032011CDAF2482D5A /* MenuBarView.swift in Sources */,
+				35DF172CB51504BCF84AF80E /* PillView.swift in Sources */,
+				578A890739AFE91D6E04E1A3 /* PinCardView.swift in Sources */,
+				13B363A1A02A8BCA90D9337D /* PinItem.swift in Sources */,
+				984472B2DF1F0D8D1D1E287A /* PinNoteApp.swift in Sources */,
+				63D03472AB26A70D83DC62FA /* PinNoteViewModel.swift in Sources */,
+				C62943F43D9A7221F69D5D65 /* PinWindowView.swift in Sources */,
+				ABFE1AA38387D6CB7095358D /* SettingsView.swift in Sources */,
+				50C474B8DBA711925E29668A /* StylePickerView.swift in Sources */,
+				2314B748F61B768A05C8BA35 /* ThemeManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		31B33675CC0468CD9915A571 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		7A91E52009F013135BD4F5F7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.pinnote.app;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		D7552457E96B328FD580E155 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		F6132305DB9E1536CD1A9D41 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.pinnote.app;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		63195CB22B4BCBEBF7638E1C /* Build configuration list for PBXProject "PinNote" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				31B33675CC0468CD9915A571 /* Debug */,
+				D7552457E96B328FD580E155 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A823230780903AE591FAB673 /* Build configuration list for PBXNativeTarget "PinNote" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7A91E52009F013135BD4F5F7 /* Debug */,
+				F6132305DB9E1536CD1A9D41 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 4CEF4A465F703F8F7B025531 /* Project object */;
+}

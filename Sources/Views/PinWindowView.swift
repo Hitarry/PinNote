@@ -213,7 +213,13 @@ final class NoteStyleController {
         let range = tv.selectedRange()
         if range.length > 0 {
             withUndoSnapshot(tv: tv) {
+                tv.textStorage?.beginEditing()
                 tv.textStorage?.addAttributes(attrs, range: range)
+                // 网页粘贴可能带入背景色（黑底）等属性，addAttributes 覆盖不掉，
+                // 重置时显式移除，让“黑块、选中才可见”的文本恢复默认
+                tv.textStorage?.removeAttribute(.backgroundColor, range: range)
+                tv.textStorage?.removeAttribute(.strokeColor, range: range)
+                tv.textStorage?.endEditing()
             }
         }
         tv.typingAttributes = attrs
@@ -584,6 +590,58 @@ final class NoteBackgroundView: NSView {
     }
 }
 
+// 粘贴拦截：网页/搜索框复制的富文本常带背景色（黑底）或浅色前景（白字），
+// 在浅色纸上看不见、只有选中才可见；粘贴前统一清洗后再插入
+final class PinNoteTextView: NSTextView {
+    override func paste(_ sender: Any?) {
+        let pb = NSPasteboard.general
+        guard let type = pb.availableType(from: [.rtfd, .rtf, .html]),
+              let data = pb.data(forType: type),
+              let attr = attributedString(from: data, type: type) else {
+            super.paste(sender)
+            return
+        }
+        let sanitized = sanitizePastedText(attr)
+        if sanitized.isEqual(to: attr) {
+            super.paste(sender)
+        } else {
+            insertText(sanitized, replacementRange: selectedRange())
+        }
+    }
+
+    override func pasteAsRichText(_ sender: Any?) {
+        paste(sender)
+    }
+
+    private func attributedString(from data: Data, type: NSPasteboard.PasteboardType) -> NSAttributedString? {
+        switch type {
+        case .rtf:
+            return try? NSAttributedString(
+                data: data,
+                options: [.documentType: NSAttributedString.DocumentType.rtf],
+                documentAttributes: nil
+            )
+        case .rtfd:
+            return try? NSAttributedString(
+                data: data,
+                options: [.documentType: NSAttributedString.DocumentType.rtfd],
+                documentAttributes: nil
+            )
+        case .html:
+            return try? NSAttributedString(
+                data: data,
+                options: [
+                    .documentType: NSAttributedString.DocumentType.html,
+                    .characterEncoding: String.Encoding.utf8.rawValue
+                ],
+                documentAttributes: nil
+            )
+        default:
+            return nil
+        }
+    }
+}
+
 struct NoteTextView: NSViewRepresentable {
     @Binding var text: String
     var attributedData: Data?
@@ -594,7 +652,7 @@ struct NoteTextView: NSViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     func makeNSView(context: Context) -> NSScrollView {
-        let tv = NSTextView()
+        let tv = PinNoteTextView()
         tv.isRichText = true
         tv.allowsUndo = true
         tv.isEditable = true
@@ -723,4 +781,38 @@ private func syncEditorBackground(_ scroll: NSScrollView) {
             background.needsDisplay = true
         }
     }
+}
+
+// 清洗粘贴进来的富文本：
+// 1) 去掉字符背景色（网页高亮/黑底复制的主要来源）
+// 2) 前景色太浅（白字、浅灰、半透明等）时恢复默认黑，保证在浅色纸上可读
+private func sanitizePastedText(_ input: NSAttributedString) -> NSAttributedString {
+    let output = NSMutableAttributedString(attributedString: input)
+    output.beginEditing()
+    output.enumerateAttributes(in: NSRange(location: 0, length: output.length), options: []) { attrs, range, _ in
+        var cleaned = attrs
+        let hadBackground = cleaned.removeValue(forKey: .backgroundColor) != nil
+        if let color = cleaned[.foregroundColor] as? NSColor,
+           isHardToReadOnPaper(color, hadBackground: hadBackground) {
+            cleaned[.foregroundColor] = NSColor.black
+        }
+        output.setAttributes(cleaned, range: range)
+    }
+    output.endEditing()
+    return output
+}
+
+// 文字在浅色纸（白/米白）背景上是否难以辨认：
+// - 很浅的近中性色（白、浅灰等）直接视为不可见
+// - 半透明前景在浅色纸上也看不清
+// - 原本带背景色一起粘贴时，前景只要偏浅就改为默认黑（白字黑底的典型情况）
+private func isHardToReadOnPaper(_ color: NSColor, hadBackground: Bool) -> Bool {
+    guard let rgb = color.usingColorSpace(.sRGB) else { return false }
+    let r = rgb.redComponent, g = rgb.greenComponent, b = rgb.blueComponent
+    if rgb.alphaComponent < 0.5 { return true }
+    let luminance = 0.299 * r + 0.587 * g + 0.114 * b
+    let saturation = max(r, g, b) - min(r, g, b)
+    if luminance > 0.80 && saturation < 0.22 { return true }
+    if hadBackground && luminance > 0.80 { return true }
+    return false
 }

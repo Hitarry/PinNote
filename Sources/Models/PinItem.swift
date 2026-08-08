@@ -11,6 +11,7 @@ struct PinItem: Identifiable, Codable, Equatable {
     var notes: [PinItem] = []   // 仅分组使用
     var text = ""               // 仅便签使用
     var attributedData: Data?   // 正文富文本（NSKeyedArchiver 归档）
+    var editorBackground: String?  // 编辑区背景风格（EditorBackgroundStyle.rawValue，按便签各自保存）
 
     // 文字样式
     var textColor: String?

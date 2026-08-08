@@ -173,6 +173,15 @@ final class PinNoteViewModel {
         save()
     }
 
+    func updateEditorBackground(_ id: UUID, _ raw: String?) {
+        let (gi, ci) = findIndex(id)
+        var copy = items
+        if let g = gi, let c = ci { copy[g].notes[c].editorBackground = raw }
+        else if let c = ci { copy[c].editorBackground = raw }
+        items = copy
+        save()
+    }
+
     func setStyle(id: UUID, color: String?, bold: Bool, italic: Bool, fontSize: Double?) {
         let (gi, ci) = findIndex(id)
         var copy = items

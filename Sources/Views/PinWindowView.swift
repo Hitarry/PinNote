@@ -257,8 +257,16 @@ struct PinWindowView: View {
     @State private var styleController = NoteStyleController()
     @State private var showColorPicker = false
     @State private var showEmojiPicker = false
-    @State private var editorStyle: EditorBackgroundStyle =
-        EditorBackgroundStyle(rawValue: UserDefaults.standard.string(forKey: "editorBackgroundStyle") ?? "") ?? .blank
+
+    // 编辑区背景风格按便签各自保存，互不影响；
+    // 未设置过的便签回退到旧版全局设置（仅作迁移默认值）
+    private var currentEditorStyle: EditorBackgroundStyle {
+        if let raw = vm.findItem(itemId)?.editorBackground,
+           let style = EditorBackgroundStyle(rawValue: raw) {
+            return style
+        }
+        return EditorBackgroundStyle(rawValue: UserDefaults.standard.string(forKey: "editorBackgroundStyle") ?? "") ?? .blank
+    }
 
     var body: some View {
         let theme = ThemeConfig.light
@@ -320,7 +328,7 @@ struct PinWindowView: View {
                 text: $text,
                 attributedData: item?.attributedData,
                 styleController: styleController,
-                backgroundStyle: editorStyle,
+                backgroundStyle: currentEditorStyle,
                 onAttributedChange: { plain, data in
                     vm.updateAttributedText(itemId, plain, data)
                 }
@@ -456,10 +464,9 @@ struct PinWindowView: View {
         Menu {
             ForEach(EditorBackgroundStyle.allCases) { style in
                 Button {
-                    editorStyle = style
-                    UserDefaults.standard.set(style.rawValue, forKey: "editorBackgroundStyle")
+                    vm.updateEditorBackground(itemId, style.rawValue)
                 } label: {
-                    if style == editorStyle {
+                    if style == currentEditorStyle {
                         Label(style.displayName, systemImage: "checkmark")
                     } else {
                         Text(style.displayName)

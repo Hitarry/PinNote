@@ -91,9 +91,36 @@ final class NoteStyleController {
         guard let tv = textView else { return }
         let range = tv.selectedRange()
         if range.length > 0 {
-            tv.textStorage?.addAttributes(attrs, range: range)
+            withUndoSnapshot(tv: tv) {
+                tv.textStorage?.addAttributes(attrs, range: range)
+            }
         }
         tv.typingAttributes.merge(attrs) { _, new in new }
+        tv.didChangeText()
+        updateFromTextView()
+    }
+
+    // 记录修改前的完整富文本，注册撤销；撤销时恢复并注册反向（支持重做）
+    private func withUndoSnapshot(tv: NSTextView, _ mutation: () -> Void) {
+        guard let storage = tv.textStorage else {
+            mutation()
+            return
+        }
+        let old = NSAttributedString(attributedString: storage)
+        mutation()
+        guard let undo = tv.undoManager else { return }
+        undo.registerUndo(withTarget: self) { target in
+            target.restoreSnapshot(old, tv: tv)
+        }
+    }
+
+    private func restoreSnapshot(_ old: NSAttributedString, tv: NSTextView) {
+        guard let storage = tv.textStorage else { return }
+        let current = NSAttributedString(attributedString: storage)
+        storage.setAttributedString(old)
+        tv.undoManager?.registerUndo(withTarget: self) { target in
+            target.restoreSnapshot(current, tv: tv)
+        }
         tv.didChangeText()
         updateFromTextView()
     }
@@ -126,7 +153,48 @@ final class NoteStyleController {
 
     func setFontSize(_ v: Double) {
         fontSize = v
-        applyFont(currentTraits)
+        guard let tv = textView, let storage = tv.textStorage else { return }
+        let range = tv.selectedRange()
+        if range.length > 0 {
+            // 逐字符按它自己的字体描述符改字号，粗体/斜体等特征天然保留，
+            // 完全不依赖按钮状态，杜绝“调字号清粗体”
+            var updates: [(NSRange, NSFont)] = []
+            storage.enumerateAttribute(.font, in: range, options: []) { font, r, _ in
+                let current = (font as? NSFont) ?? NSFont.systemFont(ofSize: 14)
+                let sized = NSFont(descriptor: current.fontDescriptor.withSize(v), size: v) ?? current
+                updates.append((r, sized))
+            }
+            withUndoSnapshot(tv: tv) {
+                storage.beginEditing()
+                for (r, font) in updates.reversed() {
+                    storage.addAttribute(.font, value: font, range: r)
+                }
+                storage.endEditing()
+            }
+            // 同步打字字体，让按钮显示值与新字号一致
+            let loc = min(range.location, max(storage.length - 1, 0))
+            let traits = fontTraits(in: storage, location: loc)
+            let base = NSFont.systemFont(ofSize: v)
+            tv.typingAttributes[.font] = NSFont(descriptor: base.fontDescriptor.withSymbolicTraits(traits), size: v) ?? base
+            tv.didChangeText()
+            updateFromTextView()
+        } else {
+            // 光标状态：读取光标前字符的字体特征，只影响后续输入
+            let location = max(min(range.location, storage.length - 1), 0)
+            let traits = fontTraits(in: storage, location: location)
+            let base = NSFont.systemFont(ofSize: v)
+            let font = NSFont(descriptor: base.fontDescriptor.withSymbolicTraits(traits), size: v) ?? base
+            tv.typingAttributes[.font] = font
+            updateFromTextView()
+        }
+    }
+
+    private func fontTraits(in storage: NSTextStorage, location: Int) -> NSFontDescriptor.SymbolicTraits {
+        guard location < storage.length,
+              let font = storage.attribute(.font, at: location, effectiveRange: nil) as? NSFont else {
+            return []
+        }
+        return font.fontDescriptor.symbolicTraits
     }
 
     func setColor(_ hex: String?) {
@@ -144,7 +212,9 @@ final class NoteStyleController {
         ]
         let range = tv.selectedRange()
         if range.length > 0 {
-            tv.textStorage?.addAttributes(attrs, range: range)
+            withUndoSnapshot(tv: tv) {
+                tv.textStorage?.addAttributes(attrs, range: range)
+            }
         }
         tv.typingAttributes = attrs
         tv.didChangeText()
@@ -207,11 +277,12 @@ struct PinWindowView: View {
                 WindowDragRegion()
                     .frame(maxWidth: .infinity)
 
-                HStack(spacing: 6) {
+                HStack(spacing: 4) {
                     Button(action: { pinned ? vm.unpinItem(itemId) : vm.pinItem(itemId) }) {
                         Image(systemName: pinned ? "pin.slash" : "pin")
                             .font(.system(size: 10))
                             .foregroundColor(pinned ? theme.accentColor : theme.secondaryText)
+                            .frame(width: 18, height: 18)
                     }
                     .buttonStyle(.plain)
                     .help(pinned ? "取消钉住" : "钉住")
@@ -220,11 +291,12 @@ struct PinWindowView: View {
                         Image(systemName: "capsule")
                             .font(.system(size: 10))
                             .foregroundColor(theme.secondaryText)
+                            .frame(width: 18, height: 18)
                     }
                     .buttonStyle(.plain)
-                    .help("胶囊模式")
+                    .help("胶囊模式（⌘M）")
                 }
-                .padding(.horizontal, 6)
+                .padding(.horizontal, 4)
                 .padding(.vertical, 4)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
@@ -256,7 +328,7 @@ struct PinWindowView: View {
                     .padding(3)
             )
 
-            // 底栏：实时字符数 + 颜色/表情按钮 + 拖拽移动（系统默认光标）+ 右下角缩放提示
+            // 底栏：实时字符数 + 颜色/表情/背景样式 + 拖拽移动（系统默认光标）+ 右下角缩放提示
             HStack(spacing: 4) {
                 Text("\(text.count)")
                     .font(.system(size: 10, weight: .medium, design: .monospaced))
@@ -288,6 +360,13 @@ struct PinWindowView: View {
         .shadow(color: .black.opacity(0.15), radius: 12, y: 4)
         .onAppear {
             text = vm.findItem(itemId)?.text ?? ""
+        }
+        .background {
+            // ⌘M：悬浮窗模式一键切换到胶囊吸附模式
+            Button("") { vm.enterPillMode(itemId) }
+                .keyboardShortcut("m", modifiers: .command)
+                .opacity(0)
+                .frame(width: 0, height: 0)
         }
     }
 
@@ -333,13 +412,13 @@ struct PinWindowView: View {
             Circle()
                 // 未设置颜色时显示默认文字色（浅色模式黑色），而不是灰色占位
                 .fill(styleController.colorHex.map(colorFromHex) ?? Color.primary)
-                .frame(width: 13, height: 13)
-                .frame(width: 20, height: 20)
+                .frame(width: 12, height: 12)
+                .frame(width: 18, height: 18)
         }
         .buttonStyle(.plain)
-        .popover(isPresented: $showColorPicker) {
+        .popover(isPresented: $showColorPicker, arrowEdge: .bottom) {
             ColorGridPicker(selectedHex: styleController.colorHex) { styleController.setColor($0) }
-                .frame(width: 250, height: 220)
+                .frame(width: 145, height: 205)
         }
     }
 
@@ -356,14 +435,14 @@ struct PinWindowView: View {
     private var emojiBtn: some View {
         Button(action: { showEmojiPicker = true }) {
             Image(systemName: "face.smiling")
-                .font(.system(size: 12))
-                .frame(width: 20, height: 20)
+                .font(.system(size: 11))
+                .frame(width: 18, height: 18)
         }
         .buttonStyle(.plain)
         .help("插入表情")
-        .popover(isPresented: $showEmojiPicker) {
+        .popover(isPresented: $showEmojiPicker, arrowEdge: .bottom) {
             EmojiGridPicker { styleController.insertEmoji($0) }
-                .frame(width: 250, height: 260)
+                .frame(width: 160, height: 230)
         }
     }
 
@@ -383,16 +462,16 @@ struct PinWindowView: View {
             }
         } label: {
             Image(systemName: "doc.text")
-                .font(.system(size: 12))
+                .font(.system(size: 11))
                 .foregroundColor(ThemeConfig.light.secondaryText)
-                .frame(width: 20, height: 20)
+                .frame(width: 18, height: 18)
         }
         .menuStyle(.borderlessButton)
         .fixedSize()
         .help("编辑区背景")
     }
 
-// MARK: - 拖拽 / 缩放（基于全局鼠标位置，杜绝抖动）
+    // MARK: - 拖拽 / 缩放（基于全局鼠标位置，杜绝抖动）
 
 }
 
@@ -541,41 +620,74 @@ struct NoteTextView: NSViewRepresentable {
 
         let background = NoteBackgroundView()
         background.style = backgroundStyle
-        background.autoresizingMask = [.width, .height]
-        background.frame = NSRect(origin: .zero, size: scroll.contentSize)
+        background.autoresizingMask = [.width]
         // 放进 clip view 内、文档视图下方：clip view 自身不透明背景不会盖住它
         scroll.contentView.addSubview(background, positioned: .below, relativeTo: tv)
         scroll.contentView.drawsBackground = false
+        scroll.contentView.postsBoundsChangedNotifications = true
+        tv.postsFrameChangedNotifications = true
 
         if let data = attributedData,
-           let att = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSAttributedString.self, from: data) {
-            tv.textStorage?.setAttributedString(att)
+           let unarchiver = try? NSKeyedUnarchiver(forReadingFrom: data) {
+            // 关闭安全解码：自定义勾选框附件类需要按 NSCoding 解码
+            unarchiver.requiresSecureCoding = false
+            if let att = unarchiver.decodeObject(of: NSAttributedString.self, forKey: NSKeyedArchiveRootObjectKey) {
+                tv.textStorage?.setAttributedString(att)
+            }
         }
+        // 默认字体 14pt（NSTextView 默认是 Helvetica 12），与重置/显示值保持一致
+        tv.typingAttributes = [
+            .font: NSFont.systemFont(ofSize: 14),
+            .foregroundColor: NSColor.textColor
+        ]
         styleController?.textView = tv
         styleController?.updateFromTextView()
+        syncEditorBackground(scroll)
+        // 滚动、文本增长、窗口缩放时都让背景纸样跟随文档尺寸，
+        // 避免一直回车后下方区域没有背景覆盖（纯白）
+        context.coordinator.boundsToken = NotificationCenter.default.addObserver(
+            forName: NSView.boundsDidChangeNotification,
+            object: scroll.contentView,
+            queue: .main
+        ) { [weak scroll] _ in
+            if let scroll { syncEditorBackground(scroll) }
+        }
+        context.coordinator.frameToken = NotificationCenter.default.addObserver(
+            forName: NSView.frameDidChangeNotification,
+            object: tv,
+            queue: .main
+        ) { [weak scroll] _ in
+            if let scroll { syncEditorBackground(scroll) }
+        }
         return scroll
     }
 
     func updateNSView(_ scroll: NSScrollView, context: Context) {
-        guard let tv = scroll.documentView as? NSTextView else { return }
+        guard scroll.documentView is NSTextView else { return }
         for subview in scroll.contentView.subviews {
             if let background = subview as? NoteBackgroundView, background.style != backgroundStyle {
                 background.style = backgroundStyle
             }
         }
-        // 窗口首次布局（onAppear 前 text 还是空）时直接写 NSTextStorage 会抛异常，
-        // 只在窗口可见后同步，并推迟到下一个 runloop 执行
-        if tv.string != text, scroll.window?.isVisible == true {
-            let newText = text
-            DispatchQueue.main.async {
-                guard let tv = scroll.documentView as? NSTextView, tv.string != newText else { return }
-                tv.string = newText
-            }
+        syncEditorBackground(scroll)
+        // 注意：text 只由文本视图自身的 textDidChange 回写，二者始终一致，
+        // 这里绝不能用 tv.string = text 做“同步”，否则会用纯文本整段覆盖、
+        // 清掉已设置的富文本样式（下划线/删除线/颜色等）
+    }
+
+    static func dismantleNSView(_ scroll: NSScrollView, coordinator: Coordinator) {
+        if let token = coordinator.boundsToken {
+            NotificationCenter.default.removeObserver(token)
+        }
+        if let token = coordinator.frameToken {
+            NotificationCenter.default.removeObserver(token)
         }
     }
 
     class Coordinator: NSObject, NSTextViewDelegate {
         var parent: NoteTextView
+        var boundsToken: NSObjectProtocol?
+        var frameToken: NSObjectProtocol?
         init(_ parent: NoteTextView) { self.parent = parent }
 
         func textDidChange(_ notification: Notification) {
@@ -594,6 +706,21 @@ struct NoteTextView: NSViewRepresentable {
                 requiringSecureCoding: false
             )
             parent.onAttributedChange(tv.string, data)
+        }
+    }
+}
+
+// 让编辑区背景纸样始终覆盖整个文档（含滚动后新露出的区域）
+private func syncEditorBackground(_ scroll: NSScrollView) {
+    guard let tv = scroll.documentView as? NSTextView else { return }
+    let size = NSSize(
+        width: max(scroll.contentSize.width, tv.frame.width),
+        height: max(scroll.contentSize.height, tv.frame.height)
+    )
+    for subview in scroll.contentView.subviews {
+        if let background = subview as? NoteBackgroundView {
+            background.frame = NSRect(origin: .zero, size: size)
+            background.needsDisplay = true
         }
     }
 }

@@ -16,7 +16,7 @@ struct MenuBarView: View {
                     dashButton("新建便签", icon: "plus", theme: theme) { vm.addNote() }
                     dashButton("新建分组", icon: "folder.badge.plus", theme: theme) { vm.addGroup() }
                 }
-                .padding(.horizontal, 8)
+                .padding(.horizontal, 10)
                 .padding(.vertical, 4)
                 .background(
                     RoundedRectangle(cornerRadius: 9)
@@ -53,7 +53,7 @@ struct MenuBarView: View {
                         .fill(theme.secondaryText.opacity(0.12))
                 )
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 8)
             .padding(.top, 8)
             .padding(.bottom, 6)
 
@@ -79,7 +79,7 @@ struct MenuBarView: View {
                 return true
             }
         }
-        .frame(width: 300, height: 486)
+        .frame(width: 268, height: 435)
         .background {
             Color.clear.background(.ultraThinMaterial)
         }
@@ -114,7 +114,10 @@ struct MenuBarView: View {
         Button(action: action) {
             HStack(spacing: 4) {
                 Image(systemName: icon).font(.system(size: 10, weight: .medium))
-                Text(label).font(.system(size: 11))
+                Text(label)
+                    .font(.system(size: 11))
+                    .lineLimit(1)
+                    .fixedSize()
             }
             .foregroundColor(theme.secondaryText.opacity(0.7))
             .padding(.horizontal, 8)
@@ -142,12 +145,14 @@ struct MenuBarView: View {
             shortcutRow("⌘W", "关闭弹窗")
             shortcutRow("⌘,", "设置")
             shortcutRow("⌘/", "帮助")
+            shortcutRow("⌘M", "切换胶囊模式")
             Divider().padding(.top, 4)
             Text("操作").font(.system(size: 9, weight: .semibold))
                 .foregroundColor(.secondary).padding(.top, 5).padding(.bottom, 2)
             tipRow("点击便签卡片 → 弹出悬浮窗")
-            tipRow("悬浮窗右上角 → 样式 / 钉住 / 胶囊")
-            tipRow("胶囊吸附屏幕边缘，悬停预览")
+            tipRow("悬浮窗顶栏 → 样式 / 钉住 / 胶囊")
+            tipRow("悬浮窗底栏 → 颜色 / 表情 / 背景 / 字符数")
+            tipRow("胶囊吸附屏幕边缘，悬停预览，拖拽调整")
             tipRow("右键菜单栏图标 → 退出")
         }
         .padding(12)

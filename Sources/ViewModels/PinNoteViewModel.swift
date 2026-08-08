@@ -108,14 +108,20 @@ final class PinNoteViewModel {
     func deleteItem(_ id: UUID) {
         let (gi, ci) = findIndex(id)
         var copy = items
+        // 删除分组时，组内所有便签一并删除并清理钉住/胶囊状态
+        var affectedIds: Set<UUID> = [id]
         if let g = gi, let c = ci {
             copy[g].notes.remove(at: c)
         } else if let c = ci {
+            // 顶级项：若是分组，收集其子便签一并清理
+            if copy[c].type == .group {
+                affectedIds.formUnion(copy[c].notes.map(\.id))
+            }
             copy.remove(at: c)
         }
         items = copy
-        pinnedItemIds.remove(id)
-        pillItemIds.remove(id)
+        pinnedItemIds.subtract(affectedIds)
+        pillItemIds.subtract(affectedIds)
         save()
     }
 

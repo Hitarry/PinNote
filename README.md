@@ -66,6 +66,7 @@ bash generate_icon.sh
 | ⌘W | 关闭弹窗 |
 | ⌘, | 设置 |
 | ⌘/ | 帮助 |
+| ⌘M | 悬浮窗切换为胶囊模式 |
 
 ## License
 

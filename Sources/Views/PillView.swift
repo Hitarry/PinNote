@@ -88,17 +88,8 @@ struct PillView: View {
     @Environment(PinNoteViewModel.self) private var vm
     let itemId: UUID
     let side: PillSide
-
-    // 不同便签用不同圆点颜色（按 id 稳定分配）
-    private var dotColor: Color {
-        let palette: [Color] = [.blue, .red, .green, .orange, .purple, .teal, .pink]
-        var hash = 0
-        for scalar in itemId.uuidString.unicodeScalars {
-            hash = (hash &* 31) &+ Int(scalar.value)
-        }
-        let index = (hash % palette.count + palette.count) % palette.count
-        return palette[index]
-    }
+    // 由 AppDelegate 分配：同时吸附的胶囊颜色互不重复
+    let dotColor: Color
 
     var body: some View {
         let item = vm.findItem(itemId)

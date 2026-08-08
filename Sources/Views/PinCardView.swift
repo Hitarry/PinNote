@@ -6,6 +6,9 @@ struct PinCardView: View {
     var dropGroupId: UUID? = nil
     @State private var isEditing = false
     @State private var editingText = ""
+    @State private var isHovering = false
+    @State private var tapPulse = false
+    @State private var showDeleteConfirm = false
 
     var body: some View {
         let _ = vm.sortStamp
@@ -46,8 +49,6 @@ struct PinCardView: View {
                             if isGroup {
                                 isEditing = true
                                 editingText = item?.title ?? ""
-                            } else {
-                                NotificationCenter.default.post(name: .openNoteWindow, object: nil, userInfo: ["id": itemId])
                             }
                         }
                 }
@@ -63,19 +64,13 @@ struct PinCardView: View {
                     .buttonStyle(.plain)
                     .help("在分组下新建便签")
                 } else {
-                    HStack(spacing: 8) {
-                        Button(action: {
-                            vm.pinItem(itemId)
-                            vm.enterPillMode(itemId)
-                            NotificationCenter.default.post(name: .closePopoverShortcut, object: nil)
-                        }) {
-                            Image(systemName: "capsule")
-                                .font(.system(size: 11))
-                                .foregroundColor(theme.secondaryText.opacity(0.6))
-                        }
-                        .buttonStyle(.plain)
-                        .help("吸附到屏幕边缘")
+                    Button(action: { showDeleteConfirm = true }) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 11))
+                            .foregroundColor(theme.secondaryText.opacity(0.6))
                     }
+                    .buttonStyle(.plain)
+                    .help("删除便签")
                 }
             }
             .padding(.horizontal, 10)
@@ -99,18 +94,36 @@ struct PinCardView: View {
             RoundedRectangle(cornerRadius: isGroup ? 10 : 12)
                 .stroke(isGroup ? theme.secondaryText.opacity(0.18) : theme.cardStroke, lineWidth: isGroup ? 0.8 : 0.5)
         )
+        .contentShape(RoundedRectangle(cornerRadius: isGroup ? 10 : 12))
+        .onTapGesture {
+            guard !isGroup else { return }
+            withAnimation(.easeOut(duration: 0.08)) { tapPulse = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.easeIn(duration: 0.12)) { tapPulse = false }
+            }
+            NotificationCenter.default.post(name: .openNoteWindow, object: nil, userInfo: ["id": itemId])
+        }
         .contextMenu {
             Button(role: .destructive) { vm.deleteItem(itemId) } label: {
                 Label("删除", systemImage: "trash")
             }
         }
         .onHover { hovering in
+            withAnimation(.easeOut(duration: 0.15)) { isHovering = hovering }
             if !isGroup {
                 NotificationCenter.default.post(
                     name: .menuCardHoverChanged, object: nil,
                     userInfo: ["id": itemId, "hovering": hovering]
                 )
             }
+        }
+        .scaleEffect(tapPulse ? 0.97 : (isHovering ? 1.02 : 1))
+        .shadow(color: isHovering ? .black.opacity(0.12) : .clear, radius: 6, y: 2)
+        .alert("删除便签", isPresented: $showDeleteConfirm) {
+            Button("删除", role: .destructive) { vm.deleteItem(itemId) }
+            Button("取消", role: .cancel) { }
+        } message: {
+            Text("确定要删除这个便签吗？此操作不可撤销。")
         }
         .draggable(item?.type == .note ? itemId.uuidString : "")
         .dropDestination(for: String.self) { items, _ in

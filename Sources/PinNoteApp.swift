@@ -35,7 +35,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowD
     private var popover: NSPopover?
     private var noteWindows: [UUID: NSWindow] = [:]
     private var noteFrames: [UUID: NSRect] = [:]   // 记住每个便签悬浮窗上次的位置/大小
+    private var windowUndoManagers: [ObjectIdentifier: UndoManager] = [:]
     private var pillWindows: [UUID: NSWindow] = [:]
+    private var pillDotColorIndices: [UUID: Int] = [:]
     private var previewPanels: [UUID: NSPanel] = [:]
     private var menuPreviewPanel: NSPanel?
     private var previewHover: Set<UUID> = []
@@ -43,12 +45,39 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowD
     private var pillAnchors: [UUID: NSPoint] = [:]
     private var pillDragShrunk: Set<UUID> = []
     private var pillDragging: Set<UUID> = []
+    private var pillWasDragged: Set<UUID> = []
     private var pillExpanded: Set<UUID> = []
     private var pendingHideTimers: [UUID: DispatchWorkItem] = [:]
     private var pendingPreviewTimers: [UUID: DispatchWorkItem] = [:]
     private var pendingCollapseTimers: [UUID: DispatchWorkItem] = [:]
 
     enum Edge { case left, right, top, bottom }
+
+    // 胶囊圆点配色：12 种鲜艳颜色（不饱和色过淡、看不清）
+    private let pillColorPalette: [Color] = [
+        .blue, .red, .green, .orange, .purple, .teal,
+        .pink, .yellow, .brown, .indigo, .cyan, .mint
+    ]
+
+    // 每个同时吸附的胶囊分配不同的圆点颜色：以 id 哈希为基准，冲突时顺延到下一个空闲色
+    private func pillDotColor(for id: UUID) -> Color {
+        if let index = pillDotColorIndices[id] {
+            return pillColorPalette[index % pillColorPalette.count]
+        }
+        var hash = 0
+        for scalar in id.uuidString.unicodeScalars {
+            hash = (hash &* 31) &+ Int(scalar.value)
+        }
+        var index = (hash % pillColorPalette.count + pillColorPalette.count) % pillColorPalette.count
+        let used = Set(pillDotColorIndices.values)
+        var guardCount = 0
+        while used.contains(index), guardCount < pillColorPalette.count {
+            index = (index + 1) % pillColorPalette.count
+            guardCount += 1
+        }
+        pillDotColorIndices[id] = index
+        return pillColorPalette[index]
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupStatusBar()
@@ -154,7 +183,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowD
         popover.contentViewController = NSHostingController(
             rootView: MenuBarView().environment(PinNoteViewModel.shared)
         )
-        popover.contentSize = NSSize(width: 300, height: 486)
+        popover.contentSize = NSSize(width: 268, height: 435)
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         if let window = popover.contentViewController?.view.window {
             window.makeKey()
@@ -225,11 +254,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowD
             origin.y = min(max(origin.y, visible.minY), visible.maxY - size.height)
             win.setFrameOrigin(origin)
         } else {
-            // 初次钉住：屏幕左侧、最小尺寸、贴左边缘
+            // 初次钉住：屏幕左侧、最小尺寸、距左边缘留 16px 间距
             win.setContentSize(NSSize(width: 240, height: 300))
             let offset = CGFloat(noteWindows.count) * 26
             win.setFrameOrigin(NSPoint(
-                x: visible.minX,
+                x: visible.minX + 16,
                 y: min(visible.minY + 60 + offset, visible.maxY - 300)
             ))
         }
@@ -241,9 +270,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowD
     private func hideNoteWindow(for id: UUID) {
         if let win = noteWindows[id] {
             noteFrames[id] = win.frame
+            windowUndoManagers.removeValue(forKey: ObjectIdentifier(win))
             win.close()
         }
         noteWindows[id] = nil
+    }
+
+    // 无边框窗口默认没有 undoManager，需要由 delegate 提供，否则 ⌘Z 无效
+    func windowWillReturnUndoManager(_ window: NSWindow) -> UndoManager? {
+        let key = ObjectIdentifier(window)
+        if let manager = windowUndoManagers[key] {
+            return manager
+        }
+        let manager = UndoManager()
+        windowUndoManagers[key] = manager
+        return manager
     }
 
     // MARK: - 胶囊模式
@@ -257,12 +298,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowD
             edge = attachEdge(for: id)
         }
         pillEdges[id] = edge
+        let dotColor = pillDotColor(for: id)
         hideNoteWindow(for: id)
         hidePreview(for: id)
         guard pillWindows[id] == nil else { return }
 
         let hosting = NSHostingController(
-            rootView: PillView(itemId: id, side: edge == .left ? .left : .right)
+            rootView: PillView(itemId: id, side: edge == .left ? .left : .right, dotColor: dotColor)
                 .environment(PinNoteViewModel.shared)
         )
         hosting.view.wantsLayer = true
@@ -294,6 +336,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowD
         pendingPreviewTimers[id]?.cancel()
         pendingCollapseTimers[id]?.cancel()
         hidePreview(for: id)
+        pillDotColorIndices.removeValue(forKey: id)
         pillWindows[id]?.close()
         pillWindows[id] = nil
         pillDragging.remove(id)
@@ -310,8 +353,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowD
         pillEdges[id] = edge
 
         var anchorY: CGFloat
-        if let remembered = pillAnchors[id] {
-            // 恢复上次拖拽后的吸附位置（Y 保持，X 按当前边缘贴边）
+        if pillWasDragged.contains(id), let remembered = pillAnchors[id] {
+            // 只有用户拖拽过的胶囊恢复上次位置；未拖拽的默认胶囊始终重新分布，避免互相重叠
             anchorY = min(max(remembered.y, v.minY), v.maxY - s.height)
         } else {
             // 首次：垂直分布，多个胶囊上下间距 64，防止悬停/预览互相误触
@@ -428,6 +471,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowD
 
     @objc private func pillDragEnded(_ notification: Notification) {
         guard let id = notification.userInfo?["id"] as? UUID, let win = pillWindows[id] else { return }
+        // 标记为用户拖拽过，之后重建胶囊时恢复该位置
+        pillWasDragged.insert(id)
         pillDragShrunk.remove(id)
         pillDragging.remove(id)
         pillExpanded.remove(id)

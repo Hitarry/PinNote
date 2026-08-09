@@ -74,10 +74,10 @@ MIT
 
 ## Support
 
-If you find DueDay helpful, consider supporting its development:
+If you find PinNote helpful, consider supporting its development:
 
 
-- **感谢赞助** — 如果DueDay对你有帮助，欢迎扫码赞助一杯咖啡 ☕
+- **感谢赞助** — 如果PinNote对你有帮助，欢迎扫码赞助一杯咖啡 ☕
 
 - <p align="center">
   <img src="assets/wechat-pay.png" width="128" >
